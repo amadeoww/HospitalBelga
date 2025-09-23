@@ -1,9 +1,9 @@
-import javax.swing.*;
+import javax.swing.*; //Intenta No utilizar los asteriscos al momento de importar librerías, puedes generar problemas de rendimiento.
 import java.awt.*;
 
 public class HospitalBelgaInterface extends JFrame implements
         SidebarComponent.NavigationListener,
-        PacientesTableComponent.TableActionListener {
+        PacientesTableComponent.TableActionListener { //No está claro el motivo de éstas implementaciones, no se aplican los fundamentos de O.O.P.
 
     private NavbarComponent navbar;
     private SidebarComponent sidebar;
@@ -71,6 +71,7 @@ public class HospitalBelgaInterface extends JFrame implements
         return centerPanel;
     }
 
+    // La implementación de estos médotos sugieren que debieran ser componentens independientes y tener su implementación separada de este contexto.
     // Implementación de SidebarComponent.NavigationListener
     @Override
     public void onVolverClicked() {
@@ -86,7 +87,7 @@ public class HospitalBelgaInterface extends JFrame implements
             System.out.println("Volviendo al menú principal...");
             // Aquí puedes implementar la navegación al menú principal
         }
-    }
+    } 
 
     @Override
     public void onPacientesClicked() {
@@ -181,7 +182,10 @@ public class HospitalBelgaInterface extends JFrame implements
         }
     }
 
-    private void showHistoriaClinica(String hc, String nombrePaciente) {
+    /**
+    * Lo ideal sería que venga el objeto para que los componentes puedan cargar la vista con su respectiva información, por ejemplo un modelo PACIENTE que tenga los atributos correctamente configurados,
+    así también podamos cumplir con el criterios de CALIDAD DE SOFTWARE*/
+    private void showHistoriaClinica(String hc, String nombrePaciente) { 
         // Crear ventana modal para la historia clínica
         JDialog historiaDialog = new JDialog(this, "Historia Clínica", true);
         historiaDialog.setSize(600, 400);
@@ -274,6 +278,7 @@ public class HospitalBelgaInterface extends JFrame implements
         super.dispose();
     }
 
+        //El Main debe ir separado en una clase independiente cuya unica función es invocar el método de arranque 'main'.
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
