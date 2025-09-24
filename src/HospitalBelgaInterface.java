@@ -293,13 +293,4 @@ public class HospitalBelgaInterface extends JFrame implements
         super.dispose();
     }
 
-        //El Main debe ir separado en una clase independiente cuya unica función es invocar el método de arranque 'main'.
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new HospitalBelgaInterface().setVisible(true);
-            }
-        });
-    }
 }

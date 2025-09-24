@@ -1,9 +1,23 @@
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.SwingConstants;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JScrollPane;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.Box;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Component;
 import java.awt.event.ActionListener;
 
 public class PacientesTableComponent extends JPanel {
