@@ -1,250 +1,204 @@
-import javax.swing.JPanel;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.SwingConstants;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.JScrollPane;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.Box;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Component;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class PacientesTableComponent extends JPanel {
-    private JTable pacientesTable;
-    private DefaultTableModel tableModel;
-    private JTextField hcField;
-    private JTextField nombreField;
-    private TableActionListener actionListener;
+    // Atributos
+    private HospitalBelgaInterface ventanaPrincipal;
+    private JTable tablaPacientes;
+    private DefaultTableModel modeloTabla;
+    private JTextField campoHC;
+    private JTextField campoNombre;
 
-    // Interface para comunicación con la clase principal
-    public interface TableActionListener {
-        void onVerHistoriaClicked(String hc, String nombrePaciente);
-        void onPaginaChanged(int pagina);
-        void onBusquedaRealizada(String hc, String nombre);
+    // Constructor - recibe la ventana principal
+    public PacientesTableComponent(HospitalBelgaInterface ventana) {
+        this.ventanaPrincipal = ventana;
+        configurarPanel();
+        crearElementos();
+        cargarDatosPacientes();
     }
 
-    public PacientesTableComponent() {
-        initializeComponent();
-        setupLayout();
-        populateTable();
-    }
-
-    private void initializeComponent() {
+    // Configurar las propiedades básicas del panel
+    private void configurarPanel() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Campos de búsqueda
-        hcField = new JTextField(15);
-        nombreField = new JTextField(15);
-
-        // Configurar tabla
-        String[] columnNames = {"HC", "FECHA ▲", "NOMBRE", "CI", "HISTORIA"};
-        tableModel = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // Hacer toda la tabla no editable
-            }
-        };
-
-        pacientesTable = new JTable(tableModel);
-        configureTable();
     }
 
-    private void setupLayout() {
-        // Panel de búsqueda
-        JPanel searchPanel = createSearchPanel();
-        add(searchPanel, BorderLayout.NORTH);
+    // Crear todos los elementos del componente
+    private void crearElementos() {
+        // Panel de búsqueda arriba
+        JPanel panelBusqueda = crearPanelBusqueda();
+        add(panelBusqueda, BorderLayout.NORTH);
 
-        // Tabla con scroll
-        JScrollPane scrollPane = new JScrollPane(pacientesTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        add(scrollPane, BorderLayout.CENTER);
+        // Tabla en el centro
+        JScrollPane scrollTabla = crearTabla();
+        add(scrollTabla, BorderLayout.CENTER);
 
-        // Panel de paginación
-        JPanel paginationPanel = createPaginationPanel();
-        add(paginationPanel, BorderLayout.SOUTH);
+        // Panel de paginación abajo
+        JPanel panelPaginacion = crearPanelPaginacion();
+        add(panelPaginacion, BorderLayout.SOUTH);
     }
 
-    private JPanel createSearchPanel() {
-        JPanel searchPanel = new JPanel();
-        searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
-        searchPanel.setBackground(Color.WHITE);
+    // Crear el panel de búsqueda
+    private JPanel crearPanelBusqueda() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(Color.WHITE);
 
-        JLabel searchTitle = new JLabel("INGRESE PARA BUSCAR");
-        searchTitle.setFont(new Font("Arial", Font.BOLD, 16));
-        searchTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Título
+        JLabel titulo = new JLabel("INGRESE PARA BUSCAR");
+        titulo.setFont(new Font("Arial", Font.BOLD, 16));
+        titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Panel de campos
-        JPanel fieldsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        fieldsPanel.setBackground(Color.WHITE);
+        // Panel con los campos de búsqueda
+        JPanel panelCampos = crearPanelCamposBusqueda();
 
-        JLabel hcLabel = new JLabel("HC:");
-        JLabel nombreLabel = new JLabel("Nombre:");
+        panel.add(titulo);
+        panel.add(Box.createVerticalStrut(10)); // Espacio
+        panel.add(panelCampos);
 
-        // Estilizar campos de texto
-        styleTextField(hcField);
-        styleTextField(nombreField);
+        return panel;
+    }
 
-        fieldsPanel.add(hcLabel);
-        fieldsPanel.add(hcField);
-        fieldsPanel.add(Box.createHorizontalStrut(20));
-        fieldsPanel.add(nombreLabel);
-        fieldsPanel.add(nombreField);
+    // Crear el panel con los campos de búsqueda
+    private JPanel crearPanelCamposBusqueda() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setBackground(Color.WHITE);
+
+        // Etiquetas y campos
+        JLabel etiquetaHC = new JLabel("HC:");
+        JLabel etiquetaNombre = new JLabel("Nombre:");
+
+        campoHC = new JTextField(15);
+        campoNombre = new JTextField(15);
+
+        // Estilizar los campos de texto
+        configurarCampoTexto(campoHC);
+        configurarCampoTexto(campoNombre);
 
         // Botón de búsqueda
-        JButton buscarButton = createBuscarButton();
-        fieldsPanel.add(Box.createHorizontalStrut(20));
-        fieldsPanel.add(buscarButton);
+        JButton botonBuscar = crearBotonBuscar();
 
-        // Agregar funcionalidad de búsqueda
-        addSearchFunctionality();
+        // Agregar funcionalidad de Enter
+        campoHC.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                realizarBusqueda();
+            }
+        });
 
-        searchPanel.add(searchTitle);
-        searchPanel.add(Box.createVerticalStrut(10));
-        searchPanel.add(fieldsPanel);
+        campoNombre.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                realizarBusqueda();
+            }
+        });
 
-        return searchPanel;
+        // Agregar elementos al panel
+        panel.add(etiquetaHC);
+        panel.add(campoHC);
+        panel.add(Box.createHorizontalStrut(20));
+        panel.add(etiquetaNombre);
+        panel.add(campoNombre);
+        panel.add(Box.createHorizontalStrut(20));
+        panel.add(botonBuscar);
+
+        return panel;
     }
 
-    private void styleTextField(JTextField textField) {
-        textField.setBorder(BorderFactory.createCompoundBorder(
+    // Configurar estilo de los campos de texto
+    private void configurarCampoTexto(JTextField campo) {
+        campo.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                 BorderFactory.createEmptyBorder(5, 8, 5, 8)
         ));
-        textField.setFont(new Font("Arial", Font.PLAIN, 12));
+        campo.setFont(new Font("Arial", Font.PLAIN, 12));
     }
 
-    private JButton createBuscarButton() {
-        JButton buscarButton = new JButton("Buscar");
-        buscarButton.setFocusPainted(false);
-        buscarButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        buscarButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+    // Crear botón de búsqueda
+    private JButton crearBotonBuscar() {
+        JButton boton = new JButton("Buscar");
+        boton.setFocusPainted(false);
+        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        boton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
 
-        buscarButton.addActionListener(e -> realizarBusqueda());
+        boton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                realizarBusqueda();
+            }
+        });
 
-        return buscarButton;
+        return boton;
     }
 
-    private void addSearchFunctionality() {
-        // Búsqueda al presionar Enter
-        ActionListener enterAction = e -> realizarBusqueda();
-        hcField.addActionListener(enterAction);
-        nombreField.addActionListener(enterAction);
-    }
-
+    // Realizar la búsqueda
     private void realizarBusqueda() {
-        String hcText = hcField.getText().trim();
-        String nombreText = nombreField.getText().trim();
+        String hc = campoHC.getText().trim();
+        String nombre = campoNombre.getText().trim();
 
-        if (actionListener != null) {
-            actionListener.onBusquedaRealizada(hcText, nombreText);
-        } else {
-            // Lógica de búsqueda local
-            filtrarTabla(hcText, nombreText);
-        }
+        // Llamar al método de la ventana principal
+        ventanaPrincipal.buscarPaciente(hc, nombre);
     }
 
-    private void filtrarTabla(String hc, String nombre) {
-        // Implementación básica de filtrado
-        System.out.println("Filtrando por HC: '" + hc + "', Nombre: '" + nombre + "'");
+    // Crear la tabla de pacientes
+    private JScrollPane crearTabla() {
+        // Definir las columnas
+        String[] nombreColumnas = {"HC", "FECHA ▲", "NOMBRE", "CI", "HISTORIA"};
 
-        // Aquí puedes implementar el filtrado real de la tabla
-        // Por ahora solo mostramos en consola
+        // Crear modelo de tabla (no editable)
+        modeloTabla = new DefaultTableModel(nombreColumnas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Hacer toda la tabla de solo lectura
+            }
+        };
+
+        // Crear tabla
+        tablaPacientes = new JTable(modeloTabla);
+        configurarTabla();
+
+        // Crear panel con scroll
+        JScrollPane scroll = new JScrollPane(tablaPacientes);
+        scroll.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        scroll.getViewport().setBackground(Color.WHITE);
+
+        return scroll;
     }
 
-    private JPanel createPaginationPanel() {
-        JPanel paginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        paginationPanel.setBackground(Color.WHITE);
-        paginationPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+    // Configurar apariencia y comportamiento de la tabla
+    private void configurarTabla() {
+        // Configurar tamaños de columnas
+        TableColumnModel columnas = tablaPacientes.getColumnModel();
+        columnas.getColumn(0).setPreferredWidth(80);  // HC
+        columnas.getColumn(1).setPreferredWidth(100); // FECHA
+        columnas.getColumn(2).setPreferredWidth(300); // NOMBRE
+        columnas.getColumn(3).setPreferredWidth(100); // CI
+        columnas.getColumn(4).setPreferredWidth(120); // HISTORIA
 
-        String[] pages = {"1", "2", "3", "4", "5", "6", "..."};
-        for (int i = 0; i < pages.length; i++) {
-            JButton pageButton = createPageButton(pages[i], i == 1, i + 1); // Página 2 activa
-            paginationPanel.add(pageButton);
-        }
+        // Configurar apariencia general
+        tablaPacientes.setRowHeight(35);
+        tablaPacientes.getTableHeader().setBackground(new Color(240, 240, 240));
+        tablaPacientes.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        tablaPacientes.setGridColor(new Color(230, 230, 230));
+        tablaPacientes.setSelectionBackground(new Color(220, 235, 255));
+        tablaPacientes.setFont(new Font("Arial", Font.PLAIN, 12));
 
-        return paginationPanel;
-    }
-
-    private JButton createPageButton(String text, boolean isActive, int pageNumber) {
-        JButton pageButton = new JButton(text);
-        pageButton.setPreferredSize(new Dimension(35, 35));
-        pageButton.setFocusPainted(false);
-        pageButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        if (isActive) {
-            pageButton.setBackground(new Color(70, 130, 200));
-            pageButton.setForeground(Color.WHITE);
-            pageButton.setBorder(BorderFactory.createLineBorder(new Color(70, 130, 200)));
-        } else {
-            pageButton.setBackground(Color.LIGHT_GRAY);
-            pageButton.setForeground(Color.BLACK);
-            pageButton.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        }
-
-        // Efecto hover para botones inactivos
-        if (!isActive && !text.equals("...")) {
-            pageButton.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    pageButton.setBackground(new Color(220, 220, 220));
-                }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    pageButton.setBackground(Color.LIGHT_GRAY);
-                }
-            });
-        }
-
-        // Funcionalidad de clic
-        if (!text.equals("...")) {
-            pageButton.addActionListener(e -> {
-                if (actionListener != null) {
-                    actionListener.onPaginaChanged(pageNumber);
-                } else {
-                    System.out.println("Página " + text + " seleccionada");
-                }
-            });
-        }
-
-        return pageButton;
-    }
-
-    private void configureTable() {
-        // Configurar columnas
-        TableColumnModel columnModel = pacientesTable.getColumnModel();
-        columnModel.getColumn(0).setPreferredWidth(80);  // HC
-        columnModel.getColumn(1).setPreferredWidth(100); // FECHA
-        columnModel.getColumn(2).setPreferredWidth(300); // NOMBRE
-        columnModel.getColumn(3).setPreferredWidth(100); // CI
-        columnModel.getColumn(4).setPreferredWidth(120); // HISTORIA
-
-        // Configurar apariencia
-        pacientesTable.setRowHeight(35);
-        pacientesTable.getTableHeader().setBackground(new Color(240, 240, 240));
-        pacientesTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        pacientesTable.setGridColor(new Color(230, 230, 230));
-        pacientesTable.setSelectionBackground(new Color(220, 235, 255));
-        pacientesTable.setFont(new Font("Arial", Font.PLAIN, 12));
-
-        // Renderer personalizado para los enlaces
-        pacientesTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        // Configurar renderer personalizado para dar formato a las celdas
+        tablaPacientes.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                                                            boolean isSelected, boolean hasFocus, int row, int column) {
                 super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
+                // Configurar estilo especial para la columna "HISTORIA"
                 if (column == 4 && value != null && value.toString().equals("VER HISTORIA")) {
                     setForeground(new Color(70, 130, 200));
                     setFont(getFont().deriveFont(Font.BOLD));
@@ -254,7 +208,7 @@ public class PacientesTableComponent extends JPanel {
                     setFont(getFont().deriveFont(Font.PLAIN));
                 }
 
-                // Centrar el contenido de ciertas columnas
+                // Centrar contenido en ciertas columnas
                 if (column == 0 || column == 3 || column == 4) {
                     setHorizontalAlignment(SwingConstants.CENTER);
                 } else {
@@ -265,29 +219,91 @@ public class PacientesTableComponent extends JPanel {
             }
         });
 
-        // Agregar funcionalidad de clic en "VER HISTORIA"
-        pacientesTable.addMouseListener(new java.awt.event.MouseAdapter() {
+        // Agregar evento de click para "VER HISTORIA"
+        tablaPacientes.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                int row = pacientesTable.rowAtPoint(e.getPoint());
-                int col = pacientesTable.columnAtPoint(e.getPoint());
+            public void mouseClicked(MouseEvent e) {
+                int fila = tablaPacientes.rowAtPoint(e.getPoint());
+                int columna = tablaPacientes.columnAtPoint(e.getPoint());
 
-                if (row >= 0 && col == 4) {
-                    String hc = pacientesTable.getValueAt(row, 0).toString();
-                    String nombre = pacientesTable.getValueAt(row, 2).toString();
+                // Si hizo click en la columna "HISTORIA"
+                if (fila >= 0 && columna == 4) {
+                    String hc = tablaPacientes.getValueAt(fila, 0).toString();
+                    String nombre = tablaPacientes.getValueAt(fila, 2).toString();
 
-                    if (actionListener != null) {
-                        actionListener.onVerHistoriaClicked(hc, nombre);
-                    } else {
-                        System.out.println("Ver historia de: " + nombre + " (HC: " + hc + ")");
-                    }
+                    // Llamar al método de la ventana principal
+                    ventanaPrincipal.mostrarHistoriaClinica(hc, nombre);
                 }
             }
         });
     }
 
-    private void populateTable() {
-        Object[][] data = {
+    // Crear el panel de paginación
+    private JPanel crearPanelPaginacion() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+
+        // Crear botones de página
+        String[] paginas = {"1", "2", "3", "4", "5", "6", "..."};
+        for (int i = 0; i < paginas.length; i++) {
+            boolean estaActivo = (i == 1); // Página 2 activa por defecto
+            JButton botonPagina = crearBotonPagina(paginas[i], estaActivo, i + 1);
+            panel.add(botonPagina);
+        }
+
+        return panel;
+    }
+
+    // Crear un botón de página
+    private JButton crearBotonPagina(String texto, boolean estaActivo, int numeroPagina) {
+        JButton boton = new JButton(texto);
+        boton.setPreferredSize(new Dimension(35, 35));
+        boton.setFocusPainted(false);
+        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Configurar estilo según si está activo
+        if (estaActivo) {
+            boton.setBackground(new Color(70, 130, 200));
+            boton.setForeground(Color.WHITE);
+            boton.setBorder(BorderFactory.createLineBorder(new Color(70, 130, 200)));
+        } else {
+            boton.setBackground(Color.LIGHT_GRAY);
+            boton.setForeground(Color.BLACK);
+            boton.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        }
+
+        // Agregar efecto hover para botones inactivos
+        if (!estaActivo && !texto.equals("...")) {
+            boton.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    boton.setBackground(new Color(220, 220, 220));
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    boton.setBackground(Color.LIGHT_GRAY);
+                }
+            });
+        }
+
+        // Agregar funcionalidad de click (excepto para "...")
+        if (!texto.equals("...")) {
+            boton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    ventanaPrincipal.cambiarPagina(numeroPagina);
+                }
+            });
+        }
+
+        return boton;
+    }
+
+    // Cargar datos de ejemplo en la tabla
+    private void cargarDatosPacientes() {
+        Object[][] datosPacientes = {
                 {"569506", "13/09/2025", "Antonio Martin Rodriguez Verduguez", "18121313", "VER HISTORIA"},
                 {"642322", "10/09/2025", "Maria Antonieta Cardenas Soliz", "1212121", "VER HISTORIA"},
                 {"232323", "8/08/2025", "Marco Jose Betancourt Rivera", "121212", "VER HISTORIA"},
@@ -296,41 +312,37 @@ public class PacientesTableComponent extends JPanel {
                 {"5575757", "6/5/2025", "Jaime Zeballos Ovando", "53535353", "VER HISTORIA"}
         };
 
-        for (Object[] row : data) {
-            tableModel.addRow(row);
+        for (Object[] fila : datosPacientes) {
+            modeloTabla.addRow(fila);
         }
     }
 
-    // Métodos públicos para la API del componente
-    public void setActionListener(TableActionListener listener) {
-        this.actionListener = listener;
+    // Métodos públicos para interactuar con el componente desde fuera
+    public void agregarPaciente(Object[] datosPaciente) {
+        modeloTabla.addRow(datosPaciente);
     }
 
-    public void addPaciente(Object[] pacienteData) {
-        tableModel.addRow(pacienteData);
+    public void limpiarTabla() {
+        modeloTabla.setRowCount(0);
     }
 
-    public void clearTable() {
-        tableModel.setRowCount(0);
-    }
-
-    public String getSelectedPatientHC() {
-        int selectedRow = pacientesTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            return pacientesTable.getValueAt(selectedRow, 0).toString();
+    public String obtenerHCPacienteSeleccionado() {
+        int filaSeleccionada = tablaPacientes.getSelectedRow();
+        if (filaSeleccionada >= 0) {
+            return tablaPacientes.getValueAt(filaSeleccionada, 0).toString();
         }
         return null;
     }
 
-    public void updateTableData(Object[][] newData) {
-        tableModel.setRowCount(0);
-        for (Object[] row : newData) {
-            tableModel.addRow(row);
+    public void actualizarDatosTabla(Object[][] nuevosDatos) {
+        modeloTabla.setRowCount(0);
+        for (Object[] fila : nuevosDatos) {
+            modeloTabla.addRow(fila);
         }
     }
 
-    public void clearSearchFields() {
-        hcField.setText("");
-        nombreField.setText("");
+    public void limpiarCamposBusqueda() {
+        campoHC.setText("");
+        campoNombre.setText("");
     }
 }

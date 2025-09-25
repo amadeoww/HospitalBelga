@@ -1,169 +1,157 @@
 import javax.swing.JPanel;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.Box;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.BorderLayout;
-import java.awt.Font;
+import java.awt.Dimension;
 import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.Component;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class SidebarComponent extends JPanel {
-    private NavigationListener navigationListener;
+    // Atributos
+    private HospitalBelgaInterface ventanaPrincipal;
+    private JButton botonVolver;
 
-    // Interface para comunicación con la clase principal
-    public interface NavigationListener {
-        void onVolverClicked();
-        void onPacientesClicked();
-        void onNavigationRequested(String destination);
+    // Constructor - recibe la ventana principal para comunicarse
+    public SidebarComponent(HospitalBelgaInterface ventana) {
+        this.ventanaPrincipal = ventana;
+        configurarPanel();
+        crearElementos();
     }
 
-    public SidebarComponent() {
-        initializeComponent();
-        setupLayout();
-    }
-
-    private void initializeComponent() {
+    // Configurar las propiedades básicas del panel
+    private void configurarPanel() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-        setPreferredSize(new Dimension(200, 0));
+        setPreferredSize(new Dimension(200, 0)); // Ancho fijo de 200 pixeles
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
     }
 
-    private void setupLayout() {
-        // Botón VOLVER
-        JButton volverButton = createVolverButton();
+    // Crear todos los elementos del sidebar
+    private void crearElementos() {
+        // Crear botón VOLVER en la parte superior
+        botonVolver = crearBotonVolver();
 
-        // Panel de navegación
-        JPanel navigationPanel = createNavigationPanel();
+        // Crear panel de navegación
+        JPanel panelNavegacion = crearPanelNavegacion();
 
-        add(volverButton, BorderLayout.NORTH);
+        // Agregar elementos al sidebar
+        add(botonVolver, BorderLayout.NORTH);
 
-        JPanel centerContainer = new JPanel(new BorderLayout());
-        centerContainer.setBackground(Color.WHITE);
-        centerContainer.add(navigationPanel, BorderLayout.NORTH);
-        centerContainer.add(Box.createVerticalGlue(), BorderLayout.CENTER);
+        // Container para centrar el panel de navegación
+        JPanel contenedorCentral = new JPanel(new BorderLayout());
+        contenedorCentral.setBackground(Color.WHITE);
+        contenedorCentral.add(panelNavegacion, BorderLayout.NORTH);
+        contenedorCentral.add(Box.createVerticalGlue(), BorderLayout.CENTER);
 
-        add(centerContainer, BorderLayout.CENTER);
+        add(contenedorCentral, BorderLayout.CENTER);
     }
 
-    private JButton createVolverButton() {
-        JButton volverButton = new JButton("VOLVER");
-        volverButton.setBackground(Color.LIGHT_GRAY);
-        volverButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        volverButton.setFocusPainted(false);
-        volverButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    // Botón VOLVER
+    private JButton crearBotonVolver() {
+        JButton boton = new JButton("VOLVER");
+        boton.setBackground(Color.LIGHT_GRAY);
+        boton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        boton.setFocusPainted(false); // Quitar el borde cuando está seleccionado
+        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Agregar efecto hover
-        volverButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                volverButton.setBackground(Color.GRAY);
+        // Agregar efecto hover (cambio de color al pasar el mouse)
+        boton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                boton.setBackground(Color.GRAY);
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                volverButton.setBackground(Color.LIGHT_GRAY);
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                boton.setBackground(Color.LIGHT_GRAY);
             }
         });
 
-        volverButton.addActionListener(new ActionListener() {
+        // Agregar acción al hacer click
+        boton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (navigationListener != null) {
-                    navigationListener.onVolverClicked();
-                } else {
-                    System.out.println("Botón VOLVER presionado");
-                }
+                ventanaPrincipal.volverAlMenuPrincipal();
             }
         });
 
-        return volverButton;
+        return boton;
     }
 
-    private JPanel createNavigationPanel() {
-        JPanel navigationPanel = new JPanel();
-        navigationPanel.setLayout(new BoxLayout(navigationPanel, BoxLayout.Y_AXIS));
-        navigationPanel.setBackground(Color.WHITE);
-        navigationPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+    // Crear el panel de navegación con los enlaces
+    private JPanel crearPanelNavegacion() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Elementos en columna
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0)); // Espacio arriba
 
         // Crear enlaces de navegación
-        JLabel pacientesLink = createNavigationLink("Pacientes", true);
-        JLabel doctoresLink = createNavigationLink("Doctores", false);
-        JLabel citasLink = createNavigationLink("Citas", false);
-        JLabel historiaLink = createNavigationLink("Historia Clínica", false);
+        JLabel linkPacientes = crearLinkNavegacion("Pacientes", true); // true = activo
+        JLabel linkDoctores = crearLinkNavegacion("Doctores", false);
+        JLabel linkCitas = crearLinkNavegacion("Citas", false);
+        JLabel linkHistoria = crearLinkNavegacion("Historia Clínica", false);
 
-        // Agregar al panel
-        navigationPanel.add(pacientesLink);
-        navigationPanel.add(Box.createVerticalStrut(15));
-        navigationPanel.add(doctoresLink);
-        navigationPanel.add(Box.createVerticalStrut(15));
-        navigationPanel.add(citasLink);
-        navigationPanel.add(Box.createVerticalStrut(15));
-        navigationPanel.add(historiaLink);
+        // Agregar enlaces al panel con espaciado
+        panel.add(linkPacientes);
+        panel.add(Box.createVerticalStrut(15)); // Espacio vertical
+        panel.add(linkDoctores);
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(linkCitas);
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(linkHistoria);
 
-        return navigationPanel;
+        return panel;
     }
 
-    private JLabel createNavigationLink(String text, boolean isActive) {
-        JLabel link = new JLabel(text);
-        link.setFont(new Font("Arial", Font.PLAIN, 14));
-        link.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        link.setAlignmentX(Component.LEFT_ALIGNMENT);
+    //Enlace de navegación
+    private JLabel crearLinkNavegacion(String texto, boolean estaActivo) {
+        JLabel enlace = new JLabel(texto);
+        enlace.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        enlace.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        if (isActive) {
-            link.setForeground(new Color(70, 130, 200));
-            link.setFont(new Font("Arial", Font.BOLD, 14));
+        // Configurar estilo según si está activo o no
+        if (estaActivo) {
+            enlace.setForeground(new Color(70, 130, 200)); // Azul
+            enlace.setFont(new Font("Arial", Font.BOLD, 14));
         } else {
-            link.setForeground(Color.DARK_GRAY);
+            enlace.setForeground(Color.DARK_GRAY);
+            enlace.setFont(new Font("Arial", Font.PLAIN, 14));
         }
 
-        // Agregar efectos hover
-        link.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                if (!isActive) {
-                    link.setForeground(new Color(70, 130, 200));
+        //efectos hover
+        enlace.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (!estaActivo) {
+                    enlace.setForeground(new Color(70, 130, 200));
                 }
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                if (!isActive) {
-                    link.setForeground(Color.DARK_GRAY);
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (!estaActivo) {
+                    enlace.setForeground(Color.DARK_GRAY);
                 }
             }
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                handleNavigationClick(text);
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                ventanaPrincipal.navegarASeccion(texto);
             }
         });
 
-        return link;
+        return enlace;
     }
 
-    private void handleNavigationClick(String destination) {
-        if (navigationListener != null) {
-            switch (destination) {
-                case "Pacientes":
-                    navigationListener.onPacientesClicked();
-                    break;
-                default:
-                    navigationListener.onNavigationRequested(destination);
-                    break;
-            }
-        } else {
-            System.out.println("Navegando a: " + destination);
-        }
-    }
-
-    // Método para establecer el listener de navegación
-    public void setNavigationListener(NavigationListener listener) {
-        this.navigationListener = listener;
-    }
-
-    // Método para actualizar el estado activo de los enlaces
-    public void setActiveNavigation(String activeItem) {
-        // Aquí puedes implementar la lógica para cambiar el estado activo
-        System.out.println("Activando navegación: " + activeItem);
-    }
 }

@@ -9,133 +9,149 @@ import java.awt.Font;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.BorderLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class NavbarComponent extends JPanel {
-    private JLabel timeLabel;
-    private Timer timer;
 
-    public NavbarComponent() {
-        initializeComponent();
-        setupLayout();
-        startClock();
+
+public class NavbarComponent extends JPanel {
+    // Atributos
+    private JLabel etiquetaHora;
+    private Timer temporizador;
+    private HospitalBelgaInterface ventanaPrincipal; // Referencia a la ventana principal
+
+    // Constructor - recibe la ventana principal para poder comunicarse
+    public NavbarComponent(HospitalBelgaInterface ventana) {
+        this.ventanaPrincipal = ventana;
+        configurarPanel();
+        crearElementos();
+        iniciarReloj();
     }
 
-    private void initializeComponent() {
+    // Configurar las propiedades básicas del panel
+    private void configurarPanel() {
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         setLayout(new BorderLayout());
-
-        timeLabel = new JLabel();
-        timeLabel.setForeground(Color.BLACK);
-        timeLabel.setFont(new Font("Arial", Font.BOLD, 12));
     }
 
-    private void setupLayout() {
+    // Crear todos los elementos del navbar
+    private void crearElementos() {
         // Panel izquierdo - Logo y título
-        JPanel logoPanel = createLogoPanel();
+        JPanel panelIzquierdo = crearPanelLogo();
 
-        // Panel derecho - Opciones de usuario
-        JPanel userPanel = createUserPanel();
+        // Panel derecho - Opciones y reloj
+        JPanel panelDerecho = crearPanelUsuario();
 
-        add(logoPanel, BorderLayout.WEST);
-        add(userPanel, BorderLayout.EAST);
+        add(panelIzquierdo, BorderLayout.WEST);
+        add(panelDerecho, BorderLayout.EAST);
     }
 
-    private JPanel createLogoPanel() {
-        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        logoPanel.setBackground(Color.WHITE);
+    // Crear el panel del logo y título
+    private JPanel crearPanelLogo() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setBackground(Color.WHITE);
 
-        JLabel logoLabel = new JLabel("⚕");
-        logoLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        logoLabel.setForeground(new Color(70, 130, 200));
+        // Icono médico
+        JLabel iconoMedico = new JLabel("⚕");
+        iconoMedico.setFont(new Font("Arial", Font.BOLD, 24));
+        iconoMedico.setForeground(new Color(70, 130, 200));
 
-        JLabel titleLabel = new JLabel("Hospital Belga");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setOpaque(true);
-        titleLabel.setBackground(new Color(70, 130, 200));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        // Título del hospital
+        JLabel titulo = new JLabel("Hospital Belga");
+        titulo.setFont(new Font("Arial", Font.BOLD, 18));
+        titulo.setForeground(Color.WHITE);
+        titulo.setOpaque(true);
+        titulo.setBackground(new Color(70, 130, 200));
+        titulo.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
 
-        logoPanel.add(logoLabel);
-        logoPanel.add(Box.createHorizontalStrut(10));
-        logoPanel.add(titleLabel);
+        panel.add(iconoMedico);
+        panel.add(Box.createHorizontalStrut(10));
+        panel.add(titulo);
 
-        return logoPanel;
+        return panel;
     }
 
-    private JPanel createUserPanel() {
-        JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        userPanel.setBackground(Color.WHITE);
+    // Crear el panel de usuario y opciones
+    private JPanel crearPanelUsuario() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        panel.setBackground(Color.WHITE);
 
-        JLabel inicioLabel = createClickableLabel("Inicio");
-        JLabel cerrarLabel = createClickableLabel("Cerrar sesión");
-        JLabel usuarioLabel = new JLabel("👤 USUARIO");
+        // Crear etiquetas clicleables
+        JLabel linkInicio = crearLinkCliceable("Inicio");
+        JLabel linkCerrarSesion = crearLinkCliceable("Cerrar sesión");
+        JLabel etiquetaUsuario = new JLabel("👤 USUARIO");
 
-        userPanel.add(inicioLabel);
-        userPanel.add(Box.createHorizontalStrut(20));
-        userPanel.add(cerrarLabel);
-        userPanel.add(Box.createHorizontalStrut(20));
-        userPanel.add(usuarioLabel);
-        userPanel.add(Box.createHorizontalStrut(10));
-        userPanel.add(timeLabel);
+        // Crear etiqueta de hora
+        etiquetaHora = new JLabel();
+        etiquetaHora.setForeground(Color.BLACK);
+        etiquetaHora.setFont(new Font("Arial", Font.BOLD, 12));
 
-        return userPanel;
+        // Agregar elementos al panel
+        panel.add(linkInicio);
+        panel.add(Box.createHorizontalStrut(20));
+        panel.add(linkCerrarSesion);
+        panel.add(Box.createHorizontalStrut(20));
+        panel.add(etiquetaUsuario);
+        panel.add(Box.createHorizontalStrut(10));
+        panel.add(etiquetaHora);
+
+        return panel;
     }
 
-    private JLabel createClickableLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        label.setForeground(Color.DARK_GRAY);
+    // Crear una etiqueta que se puede clickear
+    private JLabel crearLinkCliceable(String texto) {
+        JLabel etiqueta = new JLabel(texto);
+        etiqueta.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        etiqueta.setForeground(Color.DARK_GRAY);
 
-        // Agregar funcionalidad
-        label.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                handleNavbarClick(text);
+        // Agregar evento de click
+        etiqueta.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                manejarClickNavbar(texto);
             }
         });
 
-        return label;
+        return etiqueta;
     }
 
-    private void handleNavbarClick(String option) {
-        switch (option) {
-            case "Inicio":
-                System.out.println("Navegando a Inicio...");
-                break;
-            case "Cerrar sesión":
-                int result = JOptionPane.showConfirmDialog(
-                        this,
-                        "¿Está seguro que desea cerrar sesión?",
-                        "Confirmar",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (result == JOptionPane.YES_OPTION) {
-                    System.out.println("Cerrando sesión...");
-                    // Aquí puedes agregar la lógica para cerrar sesión
-                }
-                break;
+    // Manejar los clicks en las opciones del navbar
+    private void manejarClickNavbar(String opcion) {
+        if (opcion.equals("Inicio")) {
+            System.out.println("Navegando a Inicio...");
+        } else if (opcion.equals("Cerrar sesión")) {
+            ventanaPrincipal.cerrarSesion();
         }
     }
 
-    private void startClock() {
-        timer = new Timer(1000, new ActionListener() {
+    // Iniciar el reloj que muestra la hora
+    private void iniciarReloj() {
+        temporizador = new Timer(1000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                SimpleDateFormat sdf = new SimpleDateFormat("h:mm a\ndd/MM/yyyy");
-                String timeText = sdf.format(new Date());
-                timeLabel.setText("<html>" + timeText.replace("\n", "<br>") + "</html>");
+                actualizarHora();
             }
         });
-        timer.start();
+        temporizador.start();
+        actualizarHora(); // Mostrar la hora inmediatamente
     }
 
-    public void stopClock() {
-        if (timer != null) {
-            timer.stop();
+    // Actualizar la hora mostrada
+    private void actualizarHora() {
+        SimpleDateFormat formato = new SimpleDateFormat("h:mm a\ndd/MM/yyyy");
+        String textoHora = formato.format(new Date());
+        etiquetaHora.setText("<html>" + textoHora.replace("\n", "<br>") + "</html>");
+    }
+
+    // Detener el reloj (importante para liberar recursos)
+    public void detenerReloj() {
+        if (temporizador != null) {
+            temporizador.stop();
         }
     }
 }
