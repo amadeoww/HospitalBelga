@@ -1,3 +1,5 @@
+import views.HospitalBelgaInterface;
+
 import javax.swing.SwingUtilities;
 
 public class Main {

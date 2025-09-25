@@ -1,3 +1,5 @@
+package views;
+
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.BorderFactory;
