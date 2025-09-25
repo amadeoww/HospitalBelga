@@ -21,9 +21,13 @@ public class PacientesTableComponent extends JPanel {
     private JTextField campoHC;
     private JTextField campoNombre;
 
+    private final PacienteControlador controlador;
+
     // Constructor - recibe la ventana principal
     public PacientesTableComponent(HospitalBelgaInterface ventana) {
         this.ventanaPrincipal = ventana;
+        controlador = new PacienteControlador();
+
         configurarPanel();
         crearElementos();
         cargarDatosPacientes();
@@ -308,17 +312,8 @@ public class PacientesTableComponent extends JPanel {
 
     // Cargar datos de ejemplo en la tabla
     private void cargarDatosPacientes() {
-        Object[][] datosPacientes = {
-                {"569506", "13/09/2025", "Antonio Martin Rodriguez Verduguez", "18121313", "VER HISTORIA"},
-                {"642322", "10/09/2025", "Maria Antonieta Cardenas Soliz", "1212121", "VER HISTORIA"},
-                {"232323", "8/08/2025", "Marco Jose Betancourt Rivera", "121212", "VER HISTORIA"},
-                {"454545", "7/08/2025", "Marcela Valeria Soto Mendez", "424242", "VER HISTORIA"},
-                {"5845845", "5/08/2025", "Mary Rivera Soria", "232323", "VER HISTORIA"},
-                {"5575757", "6/5/2025", "Jaime Zeballos Ovando", "53535353", "VER HISTORIA"}
-        };
-
-        for (Object[] fila : datosPacientes) {
-            modeloTabla.addRow(fila);
+        for (Paciente actual : controlador.getPacientes()) {
+            modeloTabla.addRow(new Object[]{actual.getHc(), actual.getFechaNacimiento(), actual.getNombreCompleto(), actual.getCi(), "Ver Historia"});
         }
     }
 
