@@ -15,10 +15,9 @@ import java.awt.event.MouseAdapter;
 
 
 
+
 public class NavbarComponent extends JPanel {
     // Atributos
-    private JLabel etiquetaHora;
-    private Timer temporizador;
     private HospitalBelgaInterface ventanaPrincipal; // Referencia a la ventana principal
 
     // Constructor - recibe la ventana principal para poder comunicarse
@@ -82,11 +81,6 @@ public class NavbarComponent extends JPanel {
         JLabel linkCerrarSesion = crearLinkCliceable("Cerrar sesión");
         JLabel etiquetaUsuario = new JLabel("👤 USUARIO");
 
-        // Crear etiqueta de hora
-        etiquetaHora = new JLabel();
-        etiquetaHora.setForeground(Color.BLACK);
-        etiquetaHora.setFont(new Font("Arial", Font.BOLD, 12));
-
         // Agregar elementos al panel
         panel.add(linkInicio);
         panel.add(Box.createHorizontalStrut(20));
@@ -94,7 +88,6 @@ public class NavbarComponent extends JPanel {
         panel.add(Box.createHorizontalStrut(20));
         panel.add(etiquetaUsuario);
         panel.add(Box.createHorizontalStrut(10));
-        panel.add(etiquetaHora);
 
         return panel;
     }
@@ -124,6 +117,5 @@ public class NavbarComponent extends JPanel {
             ventanaPrincipal.cerrarSesion();
         }
     }
-
 
 }

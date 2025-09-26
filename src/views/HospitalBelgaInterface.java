@@ -15,8 +15,8 @@ import java.awt.Dimension;
 
 public class HospitalBelgaInterface extends JFrame {
     // Atributos - Los componentes principales de la ventana
-    private NavbarComponent navbar;
-    private SidebarComponent sidebar;
+    //private NavbarComponent navbar;
+    //private SidebarComponent sidebar;
     private PacientesTableComponent pacientesTable;
 
     // Constructor - Se ejecuta cuando creamos la ventana
@@ -37,8 +37,8 @@ public class HospitalBelgaInterface extends JFrame {
 
     // Método para crear todos los componentes
     private void crearComponentes() {
-        navbar = new NavbarComponent(this); // Le pasamos 'this' para que pueda comunicarse con la ventana principal
-        sidebar = new SidebarComponent(this);
+        //navbar = new NavbarComponent(this); // Le pasamos 'this' para que pueda comunicarse con la ventana principal
+        //sidebar = new SidebarComponent(this);
         pacientesTable = new PacientesTableComponent(this);
     }
 
@@ -47,14 +47,14 @@ public class HospitalBelgaInterface extends JFrame {
         setLayout(new BorderLayout());
 
         // Agregar la barra superior
-        add(navbar, BorderLayout.NORTH);
+        //add(navbar, BorderLayout.NORTH);
 
         // Panel principal con fondo azul
         JPanel panelPrincipal = new JPanel(new BorderLayout());
         panelPrincipal.setBackground(new Color(70, 130, 200));
 
         // Agregar sidebar a la izquierda
-        panelPrincipal.add(sidebar, BorderLayout.WEST);
+        //panelPrincipal.add(sidebar, BorderLayout.WEST);
 
         // Crear y agregar el panel central
         JPanel panelCentral = crearPanelCentral();
