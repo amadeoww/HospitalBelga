@@ -12,10 +12,7 @@ import java.awt.FlowLayout;
 import java.awt.BorderLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
 
 
 
@@ -30,7 +27,6 @@ public class NavbarComponent extends JPanel {
         this.ventanaPrincipal = ventana;
         configurarPanel();
         crearElementos();
-        iniciarReloj();
     }
 
     // Configurar las propiedades básicas del panel
@@ -87,10 +83,6 @@ public class NavbarComponent extends JPanel {
         JLabel linkCerrarSesion = crearLinkCliceable("Cerrar sesión");
         JLabel etiquetaUsuario = new JLabel("👤 USUARIO");
 
-        // Crear etiqueta de hora
-        etiquetaHora = new JLabel();
-        etiquetaHora.setForeground(Color.BLACK);
-        etiquetaHora.setFont(new Font("Arial", Font.BOLD, 12));
 
         // Agregar elementos al panel
         panel.add(linkInicio);
@@ -99,7 +91,6 @@ public class NavbarComponent extends JPanel {
         panel.add(Box.createHorizontalStrut(20));
         panel.add(etiquetaUsuario);
         panel.add(Box.createHorizontalStrut(10));
-        panel.add(etiquetaHora);
 
         return panel;
     }
@@ -130,29 +121,4 @@ public class NavbarComponent extends JPanel {
         }
     }
 
-    // Iniciar el reloj que muestra la hora
-    private void iniciarReloj() {
-        temporizador = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                actualizarHora();
-            }
-        });
-        temporizador.start();
-        actualizarHora(); // Mostrar la hora inmediatamente
-    }
-
-    // Actualizar la hora mostrada
-    private void actualizarHora() {
-        SimpleDateFormat formato = new SimpleDateFormat("h:mm a\ndd/MM/yyyy");
-        String textoHora = formato.format(new Date());
-        etiquetaHora.setText("<html>" + textoHora.replace("\n", "<br>") + "</html>");
-    }
-
-    // Detener el reloj (importante para liberar recursos)
-    public void detenerReloj() {
-        if (temporizador != null) {
-            temporizador.stop();
-        }
-    }
 }

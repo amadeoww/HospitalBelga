@@ -169,9 +169,6 @@ public class HospitalBelgaInterface extends JFrame {
     // Método que se ejecuta al cerrar la ventana
     @Override
     public void dispose() {
-        if (navbar != null) {
-            navbar.detenerReloj();
-        }
         super.dispose();
     }
 }
